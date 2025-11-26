@@ -421,7 +421,7 @@
             <span class="tag">Cost Optimization</span>
           </div>
           <div class="project-footer">
-            <span>SRE & FinOps</span>
+            <span>SRE &amp; FinOps</span>
           </div>
         </article>
 
@@ -475,6 +475,33 @@
             </a>
           </div>
         </article>
+
+        <!-- Project 7: Foundational Infrastructure Platform for Healthcare SaaS (Mavin) -->
+        <article class="project-card">
+          <div class="project-badge-row">
+            <span>Mavin Medical Inc</span>
+            <span class="project-badge">Founding Engineer</span>
+          </div>
+          <h2 class="project-title">Foundational Infrastructure &amp; DevOps Platform</h2>
+          <p class="project-desc">
+            Acted as an early DevOps/infrastructure engineer owning Linux servers, deployments,
+            networking, and early cloud adoption. Designed and ran the core infrastructure that enabled
+            the healthcare SaaS platform to launch and operate reliably in a compliance-focused environment.
+          </p>
+          <div class="tag-row">
+            <span class="tag">Linux</span>
+            <span class="tag">Jenkins</span>
+            <span class="tag">Docker</span>
+            <span class="tag">Terraform</span>
+            <span class="tag">Networking</span>
+            <span class="tag">On-Prem Ops</span>
+            <span class="tag">AWS</span>
+          </div>
+          <div class="project-footer">
+            <span>Infrastructure Engineering</span>
+            <span class="metric">Greenfield Build</span>
+          </div>
+        </article>
       </section>
     </main>
   </div>
@@ -503,4 +530,9 @@
     }
 
     toggleBtn.addEventListener("click", () => {
-      const current = html
+      const current = htmlEl.getAttribute("data-theme") || "dark";
+      setTheme(current === "dark" ? "light" : "dark");
+    });
+  </script>
+</body>
+</html>
