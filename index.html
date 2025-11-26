@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <title>V.Pari Sahi | DevOps / SRE Engineer</title>
+  <title>V. Pari Sahi | DevOps / SRE Engineer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Resume and portfolio site for DevOps/SRE/Cloud Engineer, Pari Sahi." />
+  <meta name="description" content="Resume and portfolio site for DevOps/SRE/Cloud Engineer, V. Pari Sahi." />
   <style>
     :root {
       --bg: #0f172a;
@@ -17,6 +17,18 @@
       --border-subtle: rgba(148, 163, 184, 0.4);
       --radius-xl: 1.5rem;
       --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.8);
+    }
+
+    [data-theme="light"] {
+      --bg: #f3f4f6;
+      --bg-alt: #e5e7eb;
+      --card: #ffffff;
+      --accent: #0f766e;
+      --accent-soft: rgba(16, 185, 129, 0.08);
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --border-subtle: rgba(209, 213, 219, 0.9);
+      --shadow-soft: 0 18px 40px rgba(148, 163, 184, 0.4);
     }
 
     * {
@@ -35,16 +47,21 @@
       align-items: center;
       justify-content: center;
       padding: 2.5rem 1rem;
+      transition: background 0.25s ease;
+    }
+
+    [data-theme="light"] body {
+      background: radial-gradient(circle at top, #e5e7eb 0, #f9fafb 45%, #e5e7eb 100%);
     }
 
     .shell {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1120px;
       background: linear-gradient(135deg, var(--bg), var(--bg-alt));
       border-radius: 2rem;
       box-shadow: var(--shadow-soft);
       border: 1px solid rgba(148, 163, 184, 0.35);
-      padding: 1.5rem;
+      padding: 1.5rem 1.75rem 1.75rem;
       position: relative;
       overflow: hidden;
     }
@@ -62,20 +79,80 @@
       z-index: 0;
     }
 
+    [data-theme="light"] .shell::before {
+      opacity: 0.35;
+    }
+
+    .chrome {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      gap: 1rem;
+    }
+
+    .chrome-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .dot {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 999px;
+      background: #ef4444;
+    }
+
+    .dot:nth-child(2) {
+      background: #f59e0b;
+    }
+    .dot:nth-child(3) {
+      background: #22c55e;
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.78rem;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.75);
+      color: var(--text-muted);
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+    }
+
+    [data-theme="light"] .theme-toggle {
+      background: rgba(243, 244, 246, 0.85);
+    }
+
+    .theme-toggle span {
+      font-size: 0.9rem;
+    }
+
     .content {
       position: relative;
       z-index: 1;
       display: grid;
       grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
       gap: 1.75rem;
+      align-items: flex-start;
     }
 
-    @media (max-width: 840px) {
+    @media (max-width: 900px) {
       body {
         padding: 1.5rem 0.75rem;
       }
       .shell {
         border-radius: 1.5rem;
+        padding: 1.25rem;
       }
       .content {
         grid-template-columns: 1fr;
@@ -96,6 +173,10 @@
       margin-bottom: 0.9rem;
     }
 
+    [data-theme="light"] .badge {
+      background: rgba(249, 250, 251, 0.8);
+    }
+
     .badge-dot {
       width: 0.55rem;
       height: 0.55rem;
@@ -109,16 +190,50 @@
       color: #e5e7eb;
     }
 
+    [data-theme="light"] .badge-label {
+      color: #111827;
+    }
+
+    .intro-row {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 2px solid rgba(148, 163, 184, 0.7);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.6);
+      flex-shrink: 0;
+      background: #020617;
+    }
+
+    [data-theme="light"] .avatar {
+      box-shadow: 0 10px 25px rgba(148, 163, 184, 0.4);
+      background: #e5e7eb;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
     h1 {
       font-size: clamp(2rem, 3vw, 2.5rem);
       letter-spacing: -0.04em;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
     }
 
     .title {
       font-size: 0.95rem;
       color: var(--text-muted);
-      margin-bottom: 0.9rem;
+      margin-bottom: 0.2rem;
     }
 
     .summary {
@@ -133,7 +248,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.5rem;
     }
 
     .pill {
@@ -145,11 +260,15 @@
       backdrop-filter: blur(12px);
     }
 
+    [data-theme="light"] .pill {
+      background: rgba(249, 250, 251, 0.9);
+    }
+
     .actions {
       display: flex;
       flex-wrap: wrap;
       gap: 0.7rem;
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.4rem;
     }
 
     .btn {
@@ -192,6 +311,20 @@
       transform: translateY(-1px);
     }
 
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      color: var(--text-main);
+    }
+
+    [data-theme="light"] .btn-secondary {
+      background: rgba(249, 250, 251, 0.9);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+    }
+
     .btn-icon {
       font-size: 1.1rem;
       line-height: 1;
@@ -228,6 +361,10 @@
       backdrop-filter: blur(18px);
     }
 
+    [data-theme="light"] .card {
+      background: #ffffff;
+    }
+
     .card-header {
       display: flex;
       justify-content: space-between;
@@ -241,6 +378,10 @@
       letter-spacing: 0.04em;
       text-transform: uppercase;
       color: #9ca3af;
+    }
+
+    [data-theme="light"] .card-title {
+      color: #6b7280;
     }
 
     .card-chip {
@@ -270,24 +411,29 @@
       font-size: 0.8rem;
     }
 
-    .exp-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
-      gap: 1rem;
+    .exp-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
     }
 
-    @media (max-width: 840px) {
-      .exp-grid {
-        grid-template-columns: 1fr;
-      }
+    .exp-block {
+      padding: 0.65rem 0.6rem;
+      border-radius: 0.9rem;
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.35);
     }
 
-    .exp-pill {
-      font-size: 0.78rem;
-      padding: 0.18rem 0.55rem;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
+    [data-theme="light"] .exp-block {
+      background: rgba(249, 250, 251, 0.9);
+    }
+
+    .tiny-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       color: var(--text-muted);
+      margin-bottom: 0.25rem;
     }
 
     .exp-title {
@@ -311,18 +457,54 @@
       gap: 0.25rem;
     }
 
-    .tiny-label {
-      font-size: 0.75rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    .exp-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.25rem;
+    }
+
+    .exp-pill {
+      font-size: 0.78rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
       color: var(--text-muted);
-      margin-bottom: 0.25rem;
+    }
+
+    .nav-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 0.4rem;
+    }
+
+    .nav-link {
+      font-size: 0.8rem;
+      text-decoration: none;
+      color: var(--accent);
+    }
+
+    .nav-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <main class="shell">
-    <section class="content">
+  <div class="shell">
+    <header class="chrome">
+      <div class="chrome-left">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <span>vparisahi.github.io • portfolio</span>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button">
+        <span id="themeIcon">🌙</span>
+        <span id="themeLabel">Dark</span>
+      </button>
+    </header>
+
+    <main class="content">
       <!-- LEFT COLUMN -->
       <div>
         <div class="badge">
@@ -331,8 +513,16 @@
           <span>DevOps · SRE · Cloud</span>
         </div>
 
-        <h1>Pari Sahi</h1>
-        <p class="title">Sr. DevOps / SRE / Cloud Engineer</p>
+        <div class="intro-row">
+          <div class="avatar">
+            <!-- Replace profile.jpg with your actual image name if different -->
+            <img src="profile.jpg" alt="Photo of V. Pari Sahi" />
+          </div>
+          <div>
+            <h1>V. Pari Sahi</h1>
+            <p class="title">DevOps / SRE / Cloud Engineer · Dublin, CA</p>
+          </div>
+        </div>
 
         <p class="summary">
           DevOps & SRE engineer with 7+ years building, operating, and
@@ -358,6 +548,14 @@
           >
             <span class="btn-icon">⬇︎</span>
             <span>Download Resume (PDF)</span>
+          </a>
+
+          <a
+            class="btn btn-secondary"
+            href="projects.html"
+          >
+            <span class="btn-icon">💻</span>
+            <span>View Projects</span>
           </a>
 
           <a
@@ -427,21 +625,25 @@
               </div>
             </li>
           </ul>
+          <div class="nav-row">
+            <a class="nav-link" href="projects.html">See selected projects →</a>
+          </div>
         </div>
 
-        <!-- Experience card -->
+        <!-- Experience card with multiple roles -->
         <div class="card">
           <div class="card-header">
-            <h2 class="card-title">Recent Experience</h2>
-            <span class="card-chip">Highlights</span>
+            <h2 class="card-title">Experience</h2>
+            <span class="card-chip">Recent Roles</span>
           </div>
 
-          <div class="exp-grid">
-            <div>
+          <div class="exp-group">
+            <!-- Viant -->
+            <div class="exp-block">
               <div class="tiny-label">Current</div>
-              <p class="exp-title">Sr. Cloud / DevOps Engineer – Viant Technology</p>
+              <p class="exp-title">DevOps / SRE / Cloud Engineer – Viant Technology LLC</p>
               <p class="exp-meta">
-                Cloud Operations & SRE · AWS & GCP · Kubernetes
+                2020 – 2025 · Cloud Operations & SRE · AWS & GCP · Kubernetes
               </p>
               <ul class="exp-bullets">
                 <li>
@@ -457,66 +659,124 @@
                   to reduce MTTR and improve incident response.
                 </li>
               </ul>
+              <div class="exp-pill-row">
+                <span class="exp-pill">Kubernetes</span>
+                <span class="exp-pill">GitOps</span>
+                <span class="exp-pill">Observability</span>
+              </div>
             </div>
 
-            <div>
-              <div class="tiny-label">Focus Areas</div>
-              <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.7rem;">
-                <span class="exp-pill">Site Reliability</span>
-                <span class="exp-pill">Platform Engineering</span>
-                <span class="exp-pill">Cost Optimization</span>
-                <span class="exp-pill">Performance Tuning</span>
-                <span class="exp-pill">Incident Management</span>
-              </div>
-              <div class="tiny-label">Sample Work</div>
+            <!-- Consensus (Target) -->
+            <div class="exp-block">
+              <div class="tiny-label">Previous</div>
+              <p class="exp-title">DevOps Engineer – Consensus (Target)</p>
+              <p class="exp-meta">
+                2019 – 2020 · Cloud Infrastructure · CI/CD · Automation
+              </p>
               <ul class="exp-bullets">
                 <li>
-                  Led migrations from on-prem/self-managed environments to
-                  cloud-native, distributed architectures.
+                  Managed CI/CD pipelines and automated deployments for services running on cloud infrastructure.
                 </li>
                 <li>
-                  Implemented failover, DR, and load testing practices to
-                  harden critical systems.
+                  Implemented infrastructure-as-code with Terraform to standardize and version-control environments.
                 </li>
                 <li>
-                  Partnered with dev teams to build reliable pipelines and
-                  production-ready services.
+                  Collaborated with developers and operations to troubleshoot performance and reliability issues.
                 </li>
               </ul>
+              <div class="exp-pill-row">
+                <span class="exp-pill">Terraform</span>
+                <span class="exp-pill">CI/CD</span>
+                <span class="exp-pill">Cloud</span>
+              </div>
+            </div>
+
+            <!-- Mavin Medical -->
+            <div class="exp-block">
+              <div class="tiny-label">Earlier</div>
+              <p class="exp-title">DevOps Engineer – Mavin Medical Inc</p>
+              <p class="exp-meta">
+                2017 – 2019 · On-Prem & Cloud · Monitoring · Incident Response
+              </p>
+              <ul class="exp-bullets">
+                <li>
+                  Supported on-prem and self-managed Linux environments, including deployments and maintenance.
+                </li>
+                <li>
+                  Implemented monitoring and alerting to improve visibility into application health and system uptime.
+                </li>
+                <li>
+                  Participated in incident response, root cause analysis, and reliability improvements for critical systems.
+                </li>
+              </ul>
+              <div class="exp-pill-row">
+                <span class="exp-pill">Linux</span>
+                <span class="exp-pill">Monitoring</span>
+                <span class="exp-pill">Incident Mgmt</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Optional Projects card -->
+        <!-- Notes / what’s next -->
         <div class="card">
           <div class="card-header">
-            <h2 class="card-title">Projects & Notes</h2>
-            <span class="card-chip">Optional</span>
+            <h2 class="card-title">What I’m Looking For</h2>
+            <span class="card-chip">Next Role</span>
           </div>
           <ul class="list">
             <li>
-              <div class="list-item-label">Infra-as-Code & GitOps</div>
+              <div class="list-item-label">Preferred Roles</div>
               <div class="list-item-sub">
-                Standardized Terraform modules and GitOps workflows for multi-cluster, multi-region environments.
+                DevOps Engineer, Site Reliability Engineer, Cloud Engineer, Platform Engineer.
               </div>
             </li>
             <li>
-              <div class="list-item-label">Monitoring at Scale</div>
+              <div class="list-item-label">Location</div>
               <div class="list-item-sub">
-                Built and operated Prometheus, Grafana, Loki, and related observability stacks handling high-volume telemetry.
+                US-remote; open to teams based in California.
               </div>
             </li>
             <li>
-              <div class="list-item-label">What’s Next</div>
+              <div class="list-item-label">Where I Add Value</div>
               <div class="list-item-sub">
-                Open to Sr DevOps / SRE / Cloud roles (US-remote).
+                Modernizing legacy infrastructure, building reliable Kubernetes platforms, and improving
+                observability, performance, and incident response.
               </div>
             </li>
           </ul>
         </div>
-
       </div>
-    </section>
-  </main>
+    </main>
+  </div>
+
+  <script>
+    const htmlEl = document.documentElement;
+    const toggleBtn = document.getElementById("themeToggle");
+    const icon = document.getElementById("themeIcon");
+    const label = document.getElementById("themeLabel");
+
+    function setTheme(theme) {
+      htmlEl.setAttribute("data-theme", theme);
+      if (theme === "light") {
+        icon.textContent = "☀️";
+        label.textContent = "Light";
+      } else {
+        icon.textContent = "🌙";
+        label.textContent = "Dark";
+      }
+      localStorage.setItem("pari-theme", theme);
+    }
+
+    const storedTheme = localStorage.getItem("pari-theme");
+    if (storedTheme === "light" || storedTheme === "dark") {
+      setTheme(storedTheme);
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      const current = htmlEl.getAttribute("data-theme") || "dark";
+      setTheme(current === "dark" ? "light" : "dark");
+    });
+  </script>
 </body>
 </html>
