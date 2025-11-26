@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <title>Projects | V. Pari Sahi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Selected DevOps, SRE, and cloud projects by V. Pari Sahi." />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-alt: #020617;
+      --card: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.1);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.4);
+      --radius-xl: 1.5rem;
+      --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.8);
+    }
+
+    [data-theme="light"] {
+      --bg: #f3f4f6;
+      --bg-alt: #e5e7eb;
+      --card: #ffffff;
+      --accent: #0f766e;
+      --accent-soft: rgba(16, 185, 129, 0.08);
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --border-subtle: rgba(209, 213, 219, 0.9);
+      --shadow-soft: 0 18px 40px rgba(148, 163, 184, 0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1rem;
+      transition: background 0.25s ease;
+    }
+
+    [data-theme="light"] body {
+      background: radial-gradient(circle at top, #e5e7eb 0, #f9fafb 45%, #e5e7eb 100%);
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1120px;
+      background: linear-gradient(135deg, var(--bg), var(--bg-alt));
+      border-radius: 2rem;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 1.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.18), transparent 58%),
+        radial-gradient(circle at 100% 0%, rgba(52, 211, 153, 0.15), transparent 55%),
+        radial-gradient(circle at 0% 100%, rgba(129, 140, 248, 0.14), transparent 50%);
+      opacity: 0.7;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    [data-theme="light"] .shell::before {
+      opacity: 0.35;
+    }
+
+    .chrome {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+
+    .chrome-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .dot {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 999px;
+      background: #ef4444;
+    }
+
+    .dot:nth-child(2) {
+      background: #f59e0b;
+    }
+
+    .dot:nth-child(3) {
+      background: #22c55e;
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.78rem;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.75);
+      color: var(--text-muted);
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+    }
+
+    [data-theme="light"] .theme-toggle {
+      background: rgba(243, 244, 246, 0.85);
+    }
+
+    .theme-toggle span {
+      font-size: 0.9rem;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: baseline;
+      margin-bottom: 1.5rem;
+    }
+
+    .header-row h1 {
+      font-size: 1.6rem;
+      letter-spacing: -0.03em;
+    }
+
+    .header-sub {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      max-width: 32rem;
+    }
+
+    .back-link {
+      font-size: 0.85rem;
+      text-decoration: none;
+      color: var(--accent);
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.2rem;
+    }
+
+    @media (max-width: 960px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 1.5rem 0.75rem;
+      }
+      .shell {
+        border-radius: 1.5rem;
+        padding: 1.25rem;
+      }
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .project-card {
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), #020617);
+      border-radius: 1.25rem;
+      padding: 1rem;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+    }
+
+    [data-theme="light"] .project-card {
+      background: #ffffff;
+    }
+
+    .project-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border-top: 2px solid var(--accent);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .project-badge-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .project-badge {
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.72rem;
+    }
+
+    .project-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .project-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.35rem;
+    }
+
+    .tag {
+      font-size: 0.73rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      color: var(--text-muted);
+    }
+
+    .project-footer {
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .project-link {
+      text-decoration: none;
+      color: var(--accent);
+    }
+
+    .project-link:hover {
+      text-decoration: underline;
+    }
+
+    .metric {
+      display: inline-block;
+      padding: 0.05rem 0.4rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.78em;
+      vertical-align: baseline;
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="chrome">
+      <div class="chrome-left">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <span>vparisahi.github.io • projects</span>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button">
+        <span id="themeIcon">🌙</span>
+        <span id="themeLabel">Dark</span>
+      </button>
+    </header>
+
+    <main>
+      <div class="header-row">
+        <div>
+          <h1>Selected Projects</h1>
+          <p class="header-sub">
+            Real-world infrastructure, automation, and reliability work across AWS, GCP, Kubernetes,
+            and Terraform. These are the kinds of problems I like to solve: stability, scalability, and speed.
+          </p>
+        </div>
+        <a class="back-link" href="index.html">← Back to profile</a>
+      </div>
+
+      <section class="grid">
+        <!-- Project 1: AdCloud GCP Migration -->
+        <article class="project-card">
+          <div class="project-badge-row">
+            <span>Viant Technology LLC</span>
+            <span class="project-badge">Production Platform</span>
+          </div>
+          <h2 class="project-title">AdCloud Migration to GCP</h2>
+          <p class="project-desc">
+            Led the migration of an <span class="highlight">11-service AdCloud platform</span> from vCenter to GCP,
+            implementing <span class="highlight">Terraform-based</span> infrastructure, per-service managed instance
+            groups, Odie-driven config, SaltBootstrap, and Alloy observability to build a scalable and resilient
+            cloud-native foundation.
+          </p>
+          <div class="tag-row">
+            <span class="tag">GCP</span>
+            <span class="tag">Terraform</span>
+            <span class="tag">MIGs</span>
+            <span class="tag">Alloy</span>
+            <span class="tag">Observability</span>
+          </div>
+          <div class="project-footer">
+            <span>Cloud Migration</span>
+            <span class="metric">11 services</span>
+          </div>
+        </article>
+
+        <!-- Project 2: GitHub Actions CI/CD Modernization -->
+        <article class="project-card">
+          <div class="project-badge-row">
+            <span>Viant Technology LLC</span>
+            <span class="project-badge">Automation</span>
+          </div>
+          <h2 class="project-title">GitHub Actions CI/CD Modernization</h2>
+          <p class="project-desc">
+            Consolidated legacy Jenkins pipelines into <span class="highlight">GitHub Actions</span> with reusable
+            workflow templates, autoscaling self-hosted runners, and standardized deployment stages, improving
+            deployment speed, consistency, and developer self-service.
+          </p>
+          <div class="tag-row">
+            <span class="tag">GitHub Actions</span>
+            <span class="tag">CI/CD</span>
+            <span class="tag">Jenkins Migration</span>
+            <span class="tag">Autoscaling Runners</span>
+          </div>
+          <div class="project-footer">
+            <span>Delivery Engineering</span>
+            <span class="metric">Org-wide</span>
+          </div>
+        </article>
+
+        <!-- Project 3: Lambda & Multi-Env Pipeline Automation -->
+        <article class="project-card">
+          <div class="project-badge-row">
+            <span>Viant Technology LLC</span>
+            <span class="project-badge">Serverless</span>
+          </div>
+          <h2 class="project-title">Lambda Fleet Automation (3,300+ Functions)</h2>
+          <p class="project-desc">
+            Automated deployment of Lambda functions across <span class="metric">19 environments</span> and
+            <span class="metric">175+ functions per environment</span> using CI/CD and IaC, allowing
+            teams to manage <span class="metric">3,300+ functions</span> without manual steps while preserving
+            environment-specific configurations.
+          </p>
+          <div class="tag-row">
+            <span class="tag">AWS Lambda</span>
+            <span class="tag">GitHub Actions</span>
+            <span class="tag">IaC</span>
+            <span class="tag">Multi-Env</span>
+          </div>
+          <div class="project-footer">
+            <span>Serverless Automation</span>
+          </div>
+        </article>
+
+        <!-- Project 4: Kubernetes Cost & Elasticity -->
+        <article class="project-card">
+          <div class="project-badge-row">
+            <span>Viant Technology LLC</span>
+            <span class="project-badge">Cost Optimization</span>
+          </div>
+          <h2 class="project-title">Kubernetes Elasticity & Cost Controls</h2>
+          <p class="project-desc">
+            Tuned Kubernetes capacity with <span class="highlight">Karpenter, KEDA, and HPA</span> to right-size compute,
+            and implemented non-production shutdown schedules that saved approximately
+            <span class="metric">25–30%</span> in off-hours costs while maintaining developer experience.
+          </p>
+          <div class="tag-row">
+            <span class="tag">EKS</span>
+            <span class="tag">Karpenter</span>
+            <span class="tag">KEDA</span>
+            <span class="tag">HPA</span>
+            <span class="tag">Cost Optimization</span>
+          </div>
+          <div class="project-footer">
+            <span>SRE & FinOps</span>
+          </div>
+        </article>
+
+        <!-- Project 5: Observability & Alert Noise Reduction -->
+        <article class="project-card">
+          <div class="project-badge-row">
+            <span>Viant Technology LLC</span>
+            <span class="project-badge">Reliability</span>
+          </div>
+          <h2 class="project-title">Observability & Alert Tuning</h2>
+          <p class="project-desc">
+            Hardened and tuned observability stack (<span class="highlight">Prometheus, Grafana, Loki, OpsGenie</span>)
+            by improving dashboards, SLO-based alerts, and routing policies—reducing noisy alerts by
+            <span class="metric">25%+</span> and improving incident focus and MTTR.
+          </p>
+          <div class="tag-row">
+            <span class="tag">Prometheus</span>
+            <span class="tag">Grafana</span>
+            <span class="tag">Loki</span>
+            <span class="tag">OpsGenie</span>
+            <span class="tag">SLOs</span>
+          </div>
+          <div class="project-footer">
+            <span>Observability</span>
+          </div>
+        </article>
+
+        <!-- Project 6: AWS 3-Tier Platform for Consensus -->
+        <article class="project-card">
+          <div class="project-badge-row">
+            <span>Consensus (Target)</span>
+            <span class="project-badge">AWS Platform</span>
+          </div>
+          <h2 class="project-title">Highly Available 3-Tier AWS Architecture</h2>
+          <p class="project-desc">
+            Designed and operated a <span class="highlight">3-tier AWS architecture</span> using EC2, RDS,
+            Auto Scaling, ELB, Route 53, and Secrets Manager to achieve
+            <span class="metric">99.99% uptime</span>. Automated provisioning with CloudFormation and AWS CLI,
+            cutting environment setup time by about <span class="metric">50%</span>.
+          </p>
+          <div class="tag-row">
+            <span class="tag">AWS</span>
+            <span class="tag">EC2 / RDS</span>
+            <span class="tag">CloudFormation</span>
+            <span class="tag">High Availability</span>
+          </div>
+          <div class="project-footer">
+            <span>Cloud Infrastructure</span>
+            <a class="project-link" href="https://github.com/vparisahi" target="_blank" rel="noopener">
+              View GitHub →
+            </a>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const htmlEl = document.documentElement;
+    const toggleBtn = document.getElementById("themeToggle");
+    const icon = document.getElementById("themeIcon");
+    const label = document.getElementById("themeLabel");
+
+    function setTheme(theme) {
+      htmlEl.setAttribute("data-theme", theme);
+      if (theme === "light") {
+        icon.textContent = "☀️";
+        label.textContent = "Light";
+      } else {
+        icon.textContent = "🌙";
+        label.textContent = "Dark";
+      }
+      localStorage.setItem("pari-theme", theme);
+    }
+
+    const storedTheme = localStorage.getItem("pari-theme");
+    if (storedTheme === "light" || storedTheme === "dark") {
+      setTheme(storedTheme);
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      const current = html
