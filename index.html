@@ -418,14 +418,25 @@
     }
 
     .exp-block {
-      padding: 0.65rem 0.6rem;
+      padding: 0.75rem 0.7rem;
       border-radius: 0.9rem;
       border: 1px dashed rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.35);
+      background: rgba(15, 23, 42, 0.45);
+      position: relative;
     }
 
     [data-theme="light"] .exp-block {
-      background: rgba(249, 250, 251, 0.9);
+      background: rgba(249, 250, 251, 0.95);
+    }
+
+    .exp-block::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border-left: 3px solid var(--accent);
+      opacity: 0.9;
+      pointer-events: none;
     }
 
     .tiny-label {
@@ -461,7 +472,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.4rem;
-      margin-top: 0.25rem;
+      margin-top: 0.35rem;
     }
 
     .exp-pill {
@@ -486,6 +497,23 @@
 
     .nav-link:hover {
       text-decoration: underline;
+    }
+
+    /* Highlight styles for 2.0 version */
+    .highlight {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .metric {
+      display: inline-block;
+      padding: 0.05rem 0.4rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.78em;
+      vertical-align: baseline;
     }
   </style>
 </head>
@@ -525,18 +553,20 @@
         </div>
 
         <p class="summary">
-          DevOps & SRE engineer with 7+ years building, operating, and
-          scaling cloud-native platforms on AWS and GCP. Strong focus on
-          Kubernetes, automation, observability, and reliability for
-          large-scale, data-intensive systems.
+          Cloud Reliability & DevOps Engineer experienced in automating infrastructure,
+          scaling <span class="highlight">Kubernetes platforms</span>, and improving production reliability.
+          Strong expertise across <span class="highlight">AWS and GCP</span>, Terraform-based IaC, CI/CD modernization,
+          and SRE practices such as SLIs/SLOs, on-call operations, and incident response.
+          Passionate about <span class="highlight">stability, efficiency, and automation-driven observability</span>.
         </p>
 
         <div class="pill-row">
           <span class="pill">AWS · GCP</span>
           <span class="pill">Kubernetes · EKS · GKE</span>
           <span class="pill">Terraform · IaC</span>
+          <span class="pill">GitHub Actions · Jenkins</span>
           <span class="pill">Prometheus · Grafana · Loki</span>
-          <span class="pill">GitOps · CI/CD</span>
+          <span class="pill">SLIs / SLOs / On-Call</span>
         </div>
 
         <div class="actions">
@@ -597,31 +627,35 @@
             <li>
               <div class="list-item-label">Cloud</div>
               <div class="list-item-sub">
-                AWS, GCP, EC2, VPC, RDS, CloudFront, Route53, Lambda, S3, EKS, GKE
+                AWS, GCP, EC2, VPC, RDS, CloudFront, Route53, Lambda, S3, EKS, GKE, GCS, Pub/Sub,
+                Dataflow, BigQuery
               </div>
             </li>
             <li>
               <div class="list-item-label">Containers & Orchestration</div>
               <div class="list-item-sub">
-                Docker, Kubernetes, EKS, GKE, Helm, ArgoCD, GitOps
+                Docker, Kubernetes (k8s), EKS, GKE, Helm, ArgoCD, GitOps
               </div>
             </li>
             <li>
               <div class="list-item-label">CI/CD & Automation</div>
               <div class="list-item-sub">
-                GitHub Actions, Jenkins, Drone, Terraform, CloudFormation, Bash, Python
+                GitHub Actions, Jenkins, Drone, Cloud Build, Artifact Registry, Terraform (Modules + Workspaces),
+                CloudFormation, Bash, Python
               </div>
             </li>
             <li>
               <div class="list-item-label">Observability & Reliability</div>
               <div class="list-item-sub">
-                Prometheus, Grafana, Loki, OpenTelemetry, CloudWatch, Logz.io, SLOs, Incident Mgmt
+                Prometheus, Grafana, Loki, OpenTelemetry, CloudWatch, Logz.io, Fluentd,
+                GCP Monitoring & Logging, Failover Automation, DR, Load Testing, Incident Response
               </div>
             </li>
             <li>
-              <div class="list-item-label">Security & Networking</div>
+              <div class="list-item-label">Security, Networking & SRE</div>
               <div class="list-item-sub">
-                DNS, TLS, Load Balancing, IAM, Secrets Management, Zero-Trust concepts
+                DNS, TLS, Load Balancing, IAM, Zero-Trust, Secrets Management, Workload Identity, KMS,
+                SLIs, SLOs, SLAs, RCA, Postmortems, On-Call, Cost Optimization
               </div>
             </li>
           </ul>
@@ -634,60 +668,107 @@
         <div class="card">
           <div class="card-header">
             <h2 class="card-title">Experience</h2>
-            <span class="card-chip">Recent Roles</span>
+            <span class="card-chip">Impact Highlights</span>
           </div>
 
           <div class="exp-group">
             <!-- Viant -->
             <div class="exp-block">
               <div class="tiny-label">Current</div>
-              <p class="exp-title">DevOps / SRE / Cloud Engineer – Viant Technology LLC</p>
+              <p class="exp-title">Cloud Reliability Engineer – Viant Technology LLC</p>
               <p class="exp-meta">
-                2020 – 2025 · Cloud Operations & SRE · AWS & GCP · Kubernetes
+                2020 – 2025 · Remote · AWS & GCP · Kubernetes & GCP Data Platform
               </p>
               <ul class="exp-bullets">
                 <li>
-                  Modernized cloud infrastructure across AWS/GCP by migrating
-                  legacy services onto standardized Kubernetes platforms.
+                  Modernized cloud infrastructure across <span class="highlight">AWS and GCP</span> by migrating legacy
+                  services to standardized <span class="highlight">EKS platforms</span>, improving reliability and operational consistency.
                 </li>
                 <li>
-                  Built GitOps-driven delivery with ArgoCD and Helm, improving
-                  deployment reliability and rollback safety.
+                  Built pre-production environment parity with automated deployment validation checks,
+                  reducing production rollbacks by <span class="metric">~30%</span>.
                 </li>
                 <li>
-                  Designed observability stacks (Prometheus, Grafana, Loki)
-                  to reduce MTTR and improve incident response.
+                  Automated failover and recovery using <span class="highlight">GitHub Actions</span> and synthetic monitoring,
+                  cutting manual intervention and improving <span class="highlight">MTTR</span>.
+                </li>
+                <li>
+                  Led enterprise CI/CD modernization by consolidating Jenkins pipelines into
+                  <span class="highlight">GitHub Actions</span> with reusable workflows and autoscaling custom runners.
+                </li>
+                <li>
+                  Automated Lambda deployment for <span class="metric">19 environments</span> and
+                  <span class="metric">175+ functions each</span> (<span class="metric">3,300+ total</span>),
+                  giving developers hands-off control via Infrastructure as Code.
+                </li>
+                <li>
+                  Managed Kubernetes elasticity using <span class="highlight">Karpenter</span> and
+                  <span class="highlight">KEDA/HPA</span> to optimize capacity and reduce unnecessary compute cost,
+                  including off-hours shutdown that cut non-production spend by
+                  <span class="metric">~25–30%</span>.
+                </li>
+                <li>
+                  Automated Terraform deployments across multiple AWS accounts with standardized workspaces
+                  and secure state management; integrated <span class="highlight">AWS Secrets Manager ↔ Kubernetes</span>
+                  to eliminate embedded credentials.
+                </li>
+                <li>
+                  Enhanced observability by reducing alert noise by <span class="metric">25%+</span>, improving
+                  <span class="highlight">Prometheus / Grafana / Loki</span> stability, rolling out actionable dashboards,
+                  and refining OpsGenie routing and incident runbooks.
+                </li>
+                <li>
+                  Led migration of an <span class="highlight">11-service AdCloud platform</span> from vCenter to GCP using
+                  Terraform, per-service Instance Groups, Odie-based dynamic configuration, SaltBootstrap, and Alloy observability
+                  for a scalable, reliable cloud foundation.
                 </li>
               </ul>
               <div class="exp-pill-row">
-                <span class="exp-pill">Kubernetes</span>
-                <span class="exp-pill">GitOps</span>
-                <span class="exp-pill">Observability</span>
+                <span class="exp-pill">EKS & GKE</span>
+                <span class="exp-pill">GitHub Actions</span>
+                <span class="exp-pill">Terraform</span>
+                <span class="exp-pill">Cost Optimization</span>
               </div>
             </div>
 
             <!-- Consensus (Target) -->
             <div class="exp-block">
               <div class="tiny-label">Previous</div>
-              <p class="exp-title">DevOps Engineer – Consensus (Target)</p>
+              <p class="exp-title">DevOps Engineer – Consensus (Target Company)</p>
               <p class="exp-meta">
-                2019 – 2020 · Cloud Infrastructure · CI/CD · Automation
+                2019 – 2020 · SFO, CA · AWS · 3-Tier Apps & Kubernetes
               </p>
               <ul class="exp-bullets">
                 <li>
-                  Managed CI/CD pipelines and automated deployments for services running on cloud infrastructure.
+                  Built scalable, highly available <span class="highlight">AWS</span> infrastructure for a 3-tier application
+                  using EC2, RDS, Auto Scaling, ELB, Route 53, and Secrets Manager, achieving
+                  <span class="metric">99.99% uptime</span>.
                 </li>
                 <li>
-                  Implemented infrastructure-as-code with Terraform to standardize and version-control environments.
+                  Automated AWS provisioning with <span class="highlight">CloudFormation and AWS CLI</span>,
+                  reducing deployment time by approximately <span class="metric">50%</span> and improving environment consistency.
                 </li>
                 <li>
-                  Collaborated with developers and operations to troubleshoot performance and reliability issues.
+                  Implemented AWS disaster recovery with cross-region replication and failover automation
+                  to maintain high availability and data durability.
+                </li>
+                <li>
+                  Led Docker containerization of legacy applications and rollout to <span class="highlight">Kubernetes / EKS</span>,
+                  improving deployment reliability and manageability.
+                </li>
+                <li>
+                  Maintained secure and compliant EKS clusters through automated patching and hardened node configurations,
+                  supported by <span class="highlight">SonarQube / Fortify</span> validation.
+                </li>
+                <li>
+                  Implemented centralized monitoring and logging using <span class="highlight">ELK</span> and CloudWatch
+                  to accelerate root-cause analysis and incident response.
                 </li>
               </ul>
               <div class="exp-pill-row">
-                <span class="exp-pill">Terraform</span>
-                <span class="exp-pill">CI/CD</span>
-                <span class="exp-pill">Cloud</span>
+                <span class="exp-pill">AWS 3-Tier</span>
+                <span class="exp-pill">CloudFormation</span>
+                <span class="exp-pill">Docker & EKS</span>
               </div>
             </div>
 
@@ -696,23 +777,34 @@
               <div class="tiny-label">Earlier</div>
               <p class="exp-title">DevOps Engineer – Mavin Medical Inc</p>
               <p class="exp-meta">
-                2017 – 2019 · On-Prem & Cloud · Monitoring · Incident Response
+                2017 – 2019 · Pinole, CA · Linux · On-Prem & Cloud
               </p>
               <ul class="exp-bullets">
                 <li>
-                  Supported on-prem and self-managed Linux environments, including deployments and maintenance.
+                  Automated CI/CD pipelines with <span class="highlight">GitHub Actions and Jenkins</span> to increase
+                  deployment frequency, enforce guardrails, and reduce rollback risk.
                 </li>
                 <li>
-                  Implemented monitoring and alerting to improve visibility into application health and system uptime.
+                  Containerized legacy workloads using <span class="highlight">Docker</span> and standardized deployment patterns,
+                  improving deployment reliability by approximately <span class="metric">50%</span>.
                 </li>
                 <li>
-                  Participated in incident response, root cause analysis, and reliability improvements for critical systems.
+                  Built Infrastructure-as-Code with <span class="highlight">Terraform</span> for multi-account AWS environments,
+                  cutting provisioning effort by about <span class="metric">30%</span> and preventing configuration drift.
+                </li>
+                <li>
+                  Introduced multi-environment IaC patterns and high-availability, secure network architectures
+                  with VPC segmentation, IAM hardening, and encrypted storage standards.
+                </li>
+                <li>
+                  Deployed centralized logging with <span class="highlight">ELK</span> and standardized dashboards/alerts
+                  with <span class="highlight">Prometheus / Grafana / CloudWatch</span>, improving MTTR and on-call efficiency.
                 </li>
               </ul>
               <div class="exp-pill-row">
-                <span class="exp-pill">Linux</span>
-                <span class="exp-pill">Monitoring</span>
-                <span class="exp-pill">Incident Mgmt</span>
+                <span class="exp-pill">CI/CD</span>
+                <span class="exp-pill">Terraform</span>
+                <span class="exp-pill">Linux & Networking</span>
               </div>
             </div>
           </div>
@@ -741,7 +833,7 @@
               <div class="list-item-label">Where I Add Value</div>
               <div class="list-item-sub">
                 Modernizing legacy infrastructure, building reliable Kubernetes platforms, and improving
-                observability, performance, and incident response.
+                observability, performance, and incident response for data-intensive systems.
               </div>
             </li>
           </ul>
