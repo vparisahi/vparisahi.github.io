@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>V.Pari Sahi | DevOps / SRE Engineer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Resume and portfolio site for DevOps/SRE/Cloud Engineer, Pari Sahi." />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-alt: #020617;
+      --card: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.1);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.4);
+      --radius-xl: 1.5rem;
+      --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.8);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1rem;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1100px;
+      background: linear-gradient(135deg, var(--bg), var(--bg-alt));
+      border-radius: 2rem;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.18), transparent 58%),
+        radial-gradient(circle at 100% 0%, rgba(52, 211, 153, 0.15), transparent 55%),
+        radial-gradient(circle at 0% 100%, rgba(129, 140, 248, 0.14), transparent 50%);
+      opacity: 0.7;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
+      gap: 1.75rem;
+    }
+
+    @media (max-width: 840px) {
+      body {
+        padding: 1.5rem 0.75rem;
+      }
+      .shell {
+        border-radius: 1.5rem;
+      }
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.78rem;
+      padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      backdrop-filter: blur(18px);
+      color: var(--text-muted);
+      margin-bottom: 0.9rem;
+    }
+
+    .badge-dot {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 999px;
+      background: radial-gradient(circle, #22c55e 0, #16a34a 40%, #14532d 100%);
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.18);
+    }
+
+    .badge-label {
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 3vw, 2.5rem);
+      letter-spacing: -0.04em;
+      margin-bottom: 0.25rem;
+    }
+
+    .title {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 0.9rem;
+    }
+
+    .summary {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 34rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .pill {
+      font-size: 0.78rem;
+      padding: 0.25rem 0.7rem;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      backdrop-filter: blur(12px);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-radius: 999px;
+      padding: 0.7rem 1.3rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease,
+        background 0.15s ease, border-color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      color: #0b1120;
+      box-shadow: 0 16px 40px rgba(56, 189, 248, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 20px 60px rgba(56, 189, 248, 0.5);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      backdrop-filter: blur(12px);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(15, 23, 42, 0.8);
+      transform: translateY(-1px);
+    }
+
+    .btn-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .contact-row a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .contact-row a:hover {
+      text-decoration: underline;
+    }
+
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .card {
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), #020617);
+      border-radius: var(--radius-xl);
+      padding: 1.1rem 1.2rem;
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(18px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+
+    .card-chip {
+      font-size: 0.72rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.5);
+    }
+
+    .list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      font-size: 0.86rem;
+    }
+
+    .list-item-label {
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .list-item-sub {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .exp-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 840px) {
+      .exp-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .exp-pill {
+      font-size: 0.78rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-muted);
+    }
+
+    .exp-title {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .exp-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .exp-bullets {
+      list-style: disc;
+      margin-left: 1rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .tiny-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="content">
+      <!-- LEFT COLUMN -->
+      <div>
+        <div class="badge">
+          <span class="badge-dot"></span>
+          <span class="badge-label">Open to Remote Roles</span>
+          <span>DevOps · SRE · Cloud</span>
+        </div>
+
+        <h1>Pari Sahi</h1>
+        <p class="title">Sr. DevOps / SRE / Cloud Engineer</p>
+
+        <p class="summary">
+          DevOps & SRE engineer with 7+ years building, operating, and
+          scaling cloud-native platforms on AWS and GCP. Strong focus on
+          Kubernetes, automation, observability, and reliability for
+          large-scale, data-intensive systems.
+        </p>
+
+        <div class="pill-row">
+          <span class="pill">AWS · GCP</span>
+          <span class="pill">Kubernetes · EKS · GKE</span>
+          <span class="pill">Terraform · IaC</span>
+          <span class="pill">Prometheus · Grafana · Loki</span>
+          <span class="pill">GitOps · CI/CD</span>
+        </div>
+
+        <div class="actions">
+          <a
+            class="btn btn-primary"
+            href="PARI_SAHI_G.pdf"
+            target="_blank"
+            rel="noopener"
+          >
+            <span class="btn-icon">⬇︎</span>
+            <span>Download Resume (PDF)</span>
+          </a>
+
+          <a
+            class="btn btn-ghost"
+            href="mailto:pari.sahi2025@gmail.com"
+          >
+            <span class="btn-icon">✉️</span>
+            <span>Email Me</span>
+          </a>
+        </div>
+
+        <div class="contact-row">
+          <span>
+            📧
+            <a href="mailto:pari.sahi2025@gmail.com">
+              pari.sahi2025@gmail.com
+            </a>
+          </span>
+          <span>
+            🔗
+            <a href="https://www.linkedin.com/in/vpari-s-7a5993265/" target="_blank" rel="noopener">
+              LinkedIn
+            </a>
+          </span>
+          <span>📍 Dublin, CA</span>
+          <span>📞 510-828-1119</span>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+        <!-- Skills card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Skills Snapshot</h2>
+            <span class="card-chip">Core Stack</span>
+          </div>
+          <ul class="list">
+            <li>
+              <div class="list-item-label">Cloud</div>
+              <div class="list-item-sub">
+                AWS, GCP, EC2, VPC, RDS, CloudFront, Route53, Lambda, S3, EKS, GKE
+              </div>
+            </li>
+            <li>
+              <div class="list-item-label">Containers & Orchestration</div>
+              <div class="list-item-sub">
+                Docker, Kubernetes, EKS, GKE, Helm, ArgoCD, GitOps
+              </div>
+            </li>
+            <li>
+              <div class="list-item-label">CI/CD & Automation</div>
+              <div class="list-item-sub">
+                GitHub Actions, Jenkins, Drone, Terraform, CloudFormation, Bash, Python
+              </div>
+            </li>
+            <li>
+              <div class="list-item-label">Observability & Reliability</div>
+              <div class="list-item-sub">
+                Prometheus, Grafana, Loki, OpenTelemetry, CloudWatch, Logz.io, SLOs, Incident Mgmt
+              </div>
+            </li>
+            <li>
+              <div class="list-item-label">Security & Networking</div>
+              <div class="list-item-sub">
+                DNS, TLS, Load Balancing, IAM, Secrets Management, Zero-Trust concepts
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Experience card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Recent Experience</h2>
+            <span class="card-chip">Highlights</span>
+          </div>
+
+          <div class="exp-grid">
+            <div>
+              <div class="tiny-label">Current</div>
+              <p class="exp-title">Sr. Cloud / DevOps Engineer – Viant Technology</p>
+              <p class="exp-meta">
+                Cloud Operations & SRE · AWS & GCP · Kubernetes
+              </p>
+              <ul class="exp-bullets">
+                <li>
+                  Modernized cloud infrastructure across AWS/GCP by migrating
+                  legacy services onto standardized Kubernetes platforms.
+                </li>
+                <li>
+                  Built GitOps-driven delivery with ArgoCD and Helm, improving
+                  deployment reliability and rollback safety.
+                </li>
+                <li>
+                  Designed observability stacks (Prometheus, Grafana, Loki)
+                  to reduce MTTR and improve incident response.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <div class="tiny-label">Focus Areas</div>
+              <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.7rem;">
+                <span class="exp-pill">Site Reliability</span>
+                <span class="exp-pill">Platform Engineering</span>
+                <span class="exp-pill">Cost Optimization</span>
+                <span class="exp-pill">Performance Tuning</span>
+                <span class="exp-pill">Incident Management</span>
+              </div>
+              <div class="tiny-label">Sample Work</div>
+              <ul class="exp-bullets">
+                <li>
+                  Led migrations from on-prem/self-managed environments to
+                  cloud-native, distributed architectures.
+                </li>
+                <li>
+                  Implemented failover, DR, and load testing practices to
+                  harden critical systems.
+                </li>
+                <li>
+                  Partnered with dev teams to build reliable pipelines and
+                  production-ready services.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Optional Projects card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Projects & Notes</h2>
+            <span class="card-chip">Optional</span>
+          </div>
+          <ul class="list">
+            <li>
+              <div class="list-item-label">Infra-as-Code & GitOps</div>
+              <div class="list-item-sub">
+                Standardized Terraform modules and GitOps workflows for multi-cluster, multi-region environments.
+              </div>
+            </li>
+            <li>
+              <div class="list-item-label">Monitoring at Scale</div>
+              <div class="list-item-sub">
+                Built and operated Prometheus, Grafana, Loki, and related observability stacks handling high-volume telemetry.
+              </div>
+            </li>
+            <li>
+              <div class="list-item-label">What’s Next</div>
+              <div class="list-item-sub">
+                Open to Sr DevOps / SRE / Cloud roles (US-remote).
+              </div>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+  </main>
+</body>
+</html>
