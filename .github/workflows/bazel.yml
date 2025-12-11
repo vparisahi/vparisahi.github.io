@@ -13,8 +13,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Bazel (Bazelisk)
-        uses: bazelbuild/setup-bazelisk@v2
+      - name: Install Bazelisk manually
+        run: |
+          curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.27.0/bazelisk-linux-amd64 -o bazelisk
+          chmod +x bazelisk
+          sudo mv bazelisk /usr/local/bin/bazel
+          bazel version
 
       - name: Bazel build
         run: bazel build //bazel:portfolio_greeting
