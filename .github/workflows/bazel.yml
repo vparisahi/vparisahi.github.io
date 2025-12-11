@@ -1,0 +1,23 @@
+name: Bazel CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  bazel:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bazel (Bazelisk)
+        uses: bazelbuild/setup-bazelisk@v2
+
+      - name: Bazel build
+        run: bazel build //bazel:portfolio_greeting
+
+      - name: Bazel test
+        run: bazel test //bazel:portfolio_greeting_test
