@@ -1,435 +1,213 @@
-#!/usr/bin/env python
-
+import dataclasses
 import datetime as dt
-from typing import List, Dict
+import json
+import logging
+import os
+from typing import Iterable, List, Dict, Any, Optional
 
 import requests
-import gspread
-from google.oauth2.service_account import Credentials
 
-# ----------------- CONFIG -----------------
+# ---- Logging setup ---------------------------------------------------------
 
-SHEET_NAME = "JobTracker"
-GOOGLE_CREDENTIALS_FILE = "service_account.json"
 
-SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive",
-]
+LOG_LEVEL = os.getenv("JOBTRACKER_LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=LOG_LEVEL,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
 
-# Max number of NEW jobs to append per run (your daily target)
-MAX_NEW_JOBS = 50
+# ---- Domain model ----------------------------------------------------------
 
-# Title keywords to consider it relevant
-TITLE_KEYWORDS = [
+
+@dataclasses.dataclass
+class Job:
+    source: str
+    company: str
+    title: str
+    location: str
+    url: str
+    remote: bool
+    posted_at: Optional[str] = None
+    raw: Dict[str, Any] = dataclasses.field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return dataclasses.asdict(self)
+
+
+TARGET_KEYWORDS = [
     "devops",
     "site reliability",
     "sre",
-    "platform engineer",
-    "platform engineering",
-    "platform reliability",
     "cloud engineer",
-    "cloud infrastructure",
-    "infrastructure engineer",
-    "systems engineer",
-    "production engineer",
-    "reliability engineer",
-    "observability",
+    "platform engineer",
+    "infrastructure",
 ]
 
-# Stack / responsibilities keywords to prefer strong matches
-STACK_KEYWORDS = [
-    # CI/CD
-    "ci/cd",
-    "continuous integration",
-    "continuous delivery",
-    "deployment pipeline",
-    "github actions",
-    "gitlab ci",
-    "jenkins",
-    "azure devops",
 
-    # K8s / containers
-    "kubernetes",
-    "k8s",
-    "eks",
-    "gke",
-    "aks",
-    "docker",
-    "helm",
-    "service mesh",
-    "istio",
-
-    # IaC
-    "terraform",
-    "pulumi",
-    "infrastructure as code",
-    "iac",
-    "ansible",
-    "chef",
-    "puppet",
-
-    # Cloud
-    "aws",
-    "amazon web services",
-    "gcp",
-    "google cloud",
-    "azure",
-
-    # Observability
-    "observability",
-    "prometheus",
-    "grafana",
-    "loki",
-    "tempo",
-    "mimir",
-    "datadog",
-    "new relic",
-    "splunk",
-    "elk",
-    "elasticsearch",
-    "kibana",
-    "logstash",
-    "opentelemetry",
-    "otel",
-
-    # SRE concepts
-    "slo",
-    "service level objective",
-    "error budget",
-    "incident response",
-    "on-call",
-    "on call",
-]
-
-# ------------ DEFAULT SOURCES (NO SHEET NEEDED) ------------
-
-DEFAULT_SOURCES: List[Dict] = [
-    # SaaS / Cloud
-    {"company": "Cloudflare", "industry": "SaaS", "ats": "greenhouse", "board": "cloudflare"},
-    {"company": "Datadog", "industry": "SaaS", "ats": "greenhouse", "board": "datadog"},
-    {"company": "HashiCorp", "industry": "SaaS", "ats": "greenhouse", "board": "hashicorp"},
-    {"company": "Twilio", "industry": "SaaS", "ats": "greenhouse", "board": "twilio"},
-    {"company": "Okta", "industry": "Security", "ats": "greenhouse", "board": "okta"},
-    {"company": "Airbnb", "industry": "Travel / Tech", "ats": "greenhouse", "board": "airbnb"},
-    {"company": "Dropbox", "industry": "SaaS", "ats": "greenhouse", "board": "dropbox"},
-    {"company": "Duolingo", "industry": "Education", "ats": "greenhouse", "board": "duolingo"},
-
-    # FinTech
-    {"company": "Coinbase", "industry": "FinTech", "ats": "greenhouse", "board": "coinbase"},
-    {"company": "Stripe", "industry": "FinTech", "ats": "greenhouse", "board": "stripe"},
-    {"company": "Plaid", "industry": "FinTech", "ats": "lever", "board": "plaid"},
-    {"company": "Brex", "industry": "FinTech", "ats": "lever", "board": "brex"},
-
-    # Healthcare / Other
-    {"company": "Oscar Health", "industry": "Healthcare", "ats": "greenhouse", "board": "oscar"},
-    {"company": "Zocdoc", "industry": "Healthcare", "ats": "greenhouse", "board": "zocdoc"},
-    {"company": "Instacart", "industry": "Grocery / Delivery", "ats": "greenhouse", "board": "instacart"},
-    {"company": "Khan Academy", "industry": "Education", "ats": "greenhouse", "board": "khanacademy"},
-
-    # Example Lever-only SaaS (you can override via sheet later)
-    {"company": "Figma", "industry": "SaaS", "ats": "lever", "board": "figma"},
-    {"company": "Shopify", "industry": "SaaS / Commerce", "ats": "lever", "board": "shopify"},
-]
-
-# -------------------------------------------------------
-# Google Sheets helpers
-# -------------------------------------------------------
-
-def get_gspread_client() -> gspread.Client:
-    credentials = Credentials.from_service_account_file(
-        GOOGLE_CREDENTIALS_FILE, scopes=SCOPES
-    )
-    return gspread.authorize(credentials)
+def _matches_keywords(title: str) -> bool:
+    title_lower = title.lower()
+    return any(k in title_lower for k in TARGET_KEYWORDS)
 
 
-def get_or_create_jobs_sheet(gc: gspread.Client) -> gspread.Worksheet:
-    sh = gc.open(SHEET_NAME)
-    try:
-        ws = sh.worksheet("jobs_raw")
-    except gspread.WorksheetNotFound:
-        ws = sh.add_worksheet(title="jobs_raw", rows=2000, cols=8)
-        ws.append_row(
-            ["Date", "Industry", "Company", "Title", "JobID", "Location", "URL", "Source"],
-            value_input_option="USER_ENTERED",
-        )
-    return ws
-
-
-def load_existing_keys(jobs_ws: gspread.Worksheet) -> set:
-    values = jobs_ws.get_all_values()
-    if len(values) <= 1:
-        return set()
-
-    rows = values[1:]  # skip header
-    keys = set()
-    for row in rows:
-        if len(row) < 8:
-            row = row + [""] * (8 - len(row))
-        _, _, company, _, job_id, _, _, source = row
-        key = f"{company.strip().lower()}::{job_id.strip()}::{source.strip().lower()}"
-        keys.add(key)
-    return keys
-
-
-# -------------------------------------------------------
-# ATS_SOURCES loading (optional override)
-# -------------------------------------------------------
-
-def load_ats_sources(gc: gspread.Client) -> List[Dict]:
-    """
-    Try to load ATS_SOURCES sheet.
-    If missing or empty -> return DEFAULT_SOURCES.
-    If has at least 1 active row -> use those instead.
-    """
-    sh = gc.open(SHEET_NAME)
-    try:
-        ws = sh.worksheet("ATS_SOURCES")
-    except gspread.WorksheetNotFound:
-        print("ATS_SOURCES sheet not found; using DEFAULT_SOURCES from code.")
-        return DEFAULT_SOURCES
-
-    records = ws.get_all_records()
-    sources = []
-    for r in records:
-        active = str(r.get("Active", "")).strip().lower()
-        if active not in ("true", "1", "yes", "y"):
-            continue
-
-        company = (r.get("Company", "") or "").strip()
-        industry = (r.get("Industry", "") or "").strip()
-        ats = (r.get("ATS", "") or "").strip().lower()
-        board = (r.get("Board", "") or "").strip()
-
-        if not company or not ats or not board:
-            continue
-
-        sources.append(
-            {
-                "company": company,
-                "industry": industry or "",
-                "ats": ats,
-                "board": board,
-            }
-        )
-
-    if not sources:
-        print("ATS_SOURCES has no active rows; using DEFAULT_SOURCES from code.")
-        return DEFAULT_SOURCES
-
-    print(f"Using {len(sources)} ATS sources from ATS_SOURCES sheet.")
-    return sources
-
-
-# -------------------------------------------------------
-# Filters
-# -------------------------------------------------------
-
-def title_matches(title: str) -> bool:
-    t = title.lower()
-    return any(kw in t for kw in TITLE_KEYWORDS)
-
-
-def score_stack_match(text: str) -> int:
-    t = text.lower()
-    return sum(1 for kw in STACK_KEYWORDS if kw in t)
-
-
-def is_remote_friendly(location: str, description: str) -> bool:
+def _looks_remote(location: str) -> bool:
     loc = (location or "").lower()
-    desc = (description or "").lower()
-
-    # Explicit "remote" wins
-    if "remote" in loc or "remote" in desc:
-        return True
-
-    # Explicit on-site only
-    if any(w in loc for w in ["onsite", "on-site", "in-office", "in office"]):
-        return False
-    if any(w in desc for w in ["onsite", "on-site", "in-office", "in office"]):
-        return False
-
-    # Neutral -> accept
-    return True
+    return any(word in loc for word in ["remote", "anywhere", "distributed"])
 
 
-# -------------------------------------------------------
-# Greenhouse fetching
-# -------------------------------------------------------
+# ---- Source definitions (API-based where possible) -------------------------
 
-def fetch_greenhouse_jobs(company: str, industry: str, board: str) -> List[Dict]:
-    url = f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs?content=true"
-    print(f"Fetching jobs for {company} (greenhouse, board={board})...")
 
-    try:
-        resp = requests.get(url, timeout=20)
-        resp.raise_for_status()
-        data = resp.json()
-    except Exception as e:
-        print(f"[Greenhouse] Error fetching board {board}: {e}")
-        return []
+@dataclasses.dataclass
+class Source:
+    name: str
+    type: str  # "greenhouse", "lever", "misc"
+    config: Dict[str, Any]
 
-    jobs = []
-    for job in data.get("jobs", []):
-        title = job.get("title", "") or ""
-        job_id = str(job.get("id", "") or "")
-        location = (job.get("location", {}) or {}).get("name", "") or ""
-        absolute_url = job.get("absolute_url", "") or ""
-        content = job.get("content", "") or ""
 
-        if not title or not job_id or not absolute_url:
+# Example: You can add your target companies here instead of editing code logic
+COMPANY_SOURCES: List[Source] = [
+    # Greenhouse example
+    Source(
+        name="ExampleCo",
+        type="greenhouse",
+        config={"board_token": "exampleco"},
+    ),
+    # Lever example
+    Source(
+        name="AnotherCo",
+        type="lever",
+        config={"company": "anotherco"},
+    ),
+    # You can add more types later ("ashby", "workable", "custom_json", etc.)
+]
+
+
+# ---- Fetchers --------------------------------------------------------------
+
+
+def fetch_from_greenhouse(source: Source) -> Iterable[Job]:
+    board_token = source.config["board_token"]
+    url = f"https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs"
+    logger.info("Fetching Greenhouse jobs for %s (%s)", source.name, url)
+
+    resp = requests.get(url, timeout=15)
+    resp.raise_for_status()
+    data = resp.json()
+
+    for item in data.get("jobs", []):
+        title = item.get("title", "")
+        location = item.get("location", {}).get("name", "") or ""
+        job_url = item.get("absolute_url", "")
+
+        if not _matches_keywords(title):
             continue
 
-        jobs.append(
-            {
-                "company": company,
-                "industry": industry,
-                "title": title,
-                "job_id": job_id,
-                "location": location,
-                "url": absolute_url,
-                "source": "Greenhouse",
-                "description": content,
-            }
+        job = Job(
+            source="greenhouse",
+            company=source.name,
+            title=title,
+            location=location,
+            url=job_url,
+            remote=_looks_remote(location),
+            posted_at=item.get("updated_at"),
+            raw=item,
         )
+        yield job
 
-    return jobs
 
+def fetch_from_lever(source: Source) -> Iterable[Job]:
+    company = source.config["company"]
+    url = f"https://api.lever.co/v0/postings/{company}?mode=json"
+    logger.info("Fetching Lever jobs for %s (%s)", source.name, url)
 
-# -------------------------------------------------------
-# Lever fetching
-# -------------------------------------------------------
+    resp = requests.get(url, timeout=15)
+    resp.raise_for_status()
+    data = resp.json()
 
-def fetch_lever_jobs(company: str, industry: str, board: str) -> List[Dict]:
-    url = f"https://api.lever.co/v0/postings/{board}?mode=json"
-    print(f"Fetching jobs for {company} (lever, board={board})...")
+    for item in data:
+        title = item.get("text", "")
+        location = ", ".join(item.get("categories", {}).get("location", "").split("/"))
+        job_url = item.get("hostedUrl") or item.get("applyUrl", "")
 
-    try:
-        resp = requests.get(url, timeout=20)
-        resp.raise_for_status()
-        data = resp.json()
-    except Exception as e:
-        print(f"[Lever] Error fetching board {board}: {e}")
-        return []
-
-    jobs = []
-    for job in data:
-        title = job.get("text", "") or ""
-        job_id = job.get("id", "") or ""
-        location_obj = job.get("categories", {}) or {}
-        location = location_obj.get("location", "") or ""
-        hosted_url = job.get("hostedUrl", "") or ""
-        description = job.get("descriptionPlain", "") or job.get("description", "") or ""
-
-        if not title or not job_id or not hosted_url:
+        if not _matches_keywords(title):
             continue
 
-        jobs.append(
-            {
-                "company": company,
-                "industry": industry,
-                "title": title,
-                "job_id": job_id,
-                "location": location,
-                "url": hosted_url,
-                "source": "Lever",
-                "description": description,
-            }
+        job = Job(
+            source="lever",
+            company=source.name,
+            title=title,
+            location=location,
+            url=job_url,
+            remote=_looks_remote(location),
+            posted_at=item.get("createdAt"),
+            raw=item,
         )
-    return jobs
+        yield job
 
 
-# -------------------------------------------------------
-# Main orchestration
-# -------------------------------------------------------
-
-def main():
-    gc = get_gspread_client()
-
-    jobs_ws = get_or_create_jobs_sheet(gc)
-    existing_keys = load_existing_keys(jobs_ws)
-    print(f"Loaded {len(existing_keys)} existing job keys from jobs_raw.")
-
-    ats_sources = load_ats_sources(gc)
-
-    all_candidates: List[Dict] = []
-
-    for src in ats_sources:
-        company = src["company"]
-        industry = src["industry"]
-        ats = src["ats"]
-        board = src["board"]
-
-        if ats == "greenhouse":
-            jobs = fetch_greenhouse_jobs(company, industry, board)
-        elif ats == "lever":
-            jobs = fetch_lever_jobs(company, industry, board)
+def fetch_from_source(source: Source) -> Iterable[Job]:
+    try:
+        if source.type == "greenhouse":
+            yield from fetch_from_greenhouse(source)
+        elif source.type == "lever":
+            yield from fetch_from_lever(source)
         else:
-            print(f"Skipping {company}: ATS {ats!r} not implemented.")
+            logger.warning("Unknown source type '%s' for %s", source.type, source.name)
+    except Exception as exc:
+        logger.exception("Failed to fetch jobs for %s: %s", source.name, exc)
+
+
+# ---- Aggregation / output --------------------------------------------------
+
+
+def dedupe_jobs(jobs: Iterable[Job]) -> List[Job]:
+    seen = set()
+    deduped: List[Job] = []
+    for job in jobs:
+        key = (job.company.lower(), job.title.lower(), job.url)
+        if key in seen:
             continue
+        seen.add(key)
+        deduped.append(job)
+    return deduped
 
-        if not jobs:
-            print(f"  -> 0 raw jobs for {company}")
-            continue
 
-        kept_for_company = 0
-        for job in jobs:
-            title = job["title"]
-            desc = job["description"]
-            location = job["location"]
+def save_jobs_json(jobs: List[Job], path: str) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump([j.to_dict() for j in jobs], f, indent=2, ensure_ascii=False)
+    logger.info("Saved %d jobs to %s", len(jobs), path)
 
-            if not title_matches(title):
-                continue
-            if not is_remote_friendly(location, desc):
-                continue
 
-            stack_score = score_stack_match(title + " " + desc)
-            if stack_score == 0:
-                continue
+def main() -> None:
+    logger.info("Starting job fetch")
 
-            all_candidates.append(job)
-            kept_for_company += 1
+    all_jobs: List[Job] = []
 
-        print(f"  -> {kept_for_company} relevant rows for {company}")
+    for src in COMPANY_SOURCES:
+        jobs = list(fetch_from_source(src))
+        logger.info("Fetched %d jobs from %s", len(jobs), src.name)
+        all_jobs.extend(jobs)
 
-    if not all_candidates:
-        print("No relevant jobs found across all ATS sources.")
-        return
+    filtered = [j for j in all_jobs if j.remote]  # remote only
+    deduped = dedupe_jobs(filtered)
+
+    logger.info(
+        "Total fetched: %d, after remote filter: %d, after dedupe: %d",
+        len(all_jobs),
+        len(filtered),
+        len(deduped),
+    )
 
     today = dt.date.today().isoformat()
-    new_rows = []
-    added_keys = set()
-
-    for job in all_candidates:
-        key = f"{job['company'].strip().lower()}::{job['job_id'].strip()}::{job['source'].strip().lower()}"
-        if key in existing_keys or key in added_keys:
-            continue
-
-        row = [
-            today,
-            job["industry"],
-            job["company"],
-            job["title"],
-            job["job_id"],
-            job["location"],
-            job["url"],
-            job["source"],
-        ]
-        new_rows.append(row)
-        added_keys.add(key)
-
-        if len(new_rows) >= MAX_NEW_JOBS:
-            break
-
-    if not new_rows:
-        print("No new jobs to append (all duplicates or filtered out).")
-        return
-
-    print(f"Will append {len(new_rows)} new jobs.")
-    jobs_ws.append_rows(new_rows, value_input_option="USER_ENTERED")
-    print("Done.")
+    output_path = os.path.join(
+        os.path.dirname(__file__),
+        "data",
+        f"jobs_{today}.json",
+    )
+    save_jobs_json(deduped, output_path)
 
 
 if __name__ == "__main__":
     main()
-
