@@ -1,14 +1,16 @@
 import dataclasses
 import datetime as dt
-import json
 import logging
 import os
-from typing import Iterable, List, Dict, Any, Optional
+from typing import Iterable, List, Dict, Any, Optional, Tuple
 
 import requests
+import gspread
+from google.oauth2.service_account import Credentials
 
-# ---- Logging setup ---------------------------------------------------------
-
+# -------------------------------------------------------------------
+# Logging
+# -------------------------------------------------------------------
 
 LOG_LEVEL = os.getenv("JOBTRACKER_LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
@@ -17,8 +19,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ---- Domain model ----------------------------------------------------------
+# -------------------------------------------------------------------
+# Google Sheets config
+# -------------------------------------------------------------------
 
+SHEET_NAME = "JobTracker"
+GOOGLE_CREDENTIALS_FILE = "service_account.json"
+
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+]
+
+# -------------------------------------------------------------------
+# Domain model
+# -------------------------------------------------------------------
 
 @dataclasses.dataclass
 class Job:
@@ -31,9 +46,6 @@ class Job:
     posted_at: Optional[str] = None
     raw: Dict[str, Any] = dataclasses.field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
-        return dataclasses.asdict(self)
-
 
 TARGET_KEYWORDS = [
     "devops",
@@ -44,10 +56,13 @@ TARGET_KEYWORDS = [
     "infrastructure",
 ]
 
+# -------------------------------------------------------------------
+# Helpers
+# -------------------------------------------------------------------
 
 def _matches_keywords(title: str) -> bool:
-    title_lower = title.lower()
-    return any(k in title_lower for k in TARGET_KEYWORDS)
+    t = title.lower()
+    return any(k in t for k in TARGET_KEYWORDS)
 
 
 def _looks_remote(location: str) -> bool:
@@ -55,42 +70,63 @@ def _looks_remote(location: str) -> bool:
     return any(word in loc for word in ["remote", "anywhere", "distributed"])
 
 
-# ---- Source definitions (API-based where possible) -------------------------
+def get_gspread_client() -> gspread.Client:
+    credentials = Credentials.from_service_account_file(
+        GOOGLE_CREDENTIALS_FILE, scopes=SCOPES
+    )
+    return gspread.authorize(credentials)
 
 
-@dataclasses.dataclass
-class Source:
-    name: str
-    type: str  # "greenhouse", "lever", "misc"
-    config: Dict[str, Any]
+# -------------------------------------------------------------------
+# Sheets access
+# -------------------------------------------------------------------
+
+def get_ats_sources(gc: gspread.Client) -> List[Dict[str, str]]:
+    sh = gc.open(SHEET_NAME)
+    ws = sh.worksheet("ATS_SOURCES")
+    records = ws.get_all_records()
+
+    active = []
+    for r in records:
+        if str(r.get("Active", "")).strip().lower() in ("true", "1", "yes", "y"):
+            active.append(r)
+
+    return active
 
 
-# Example: You can add your target companies here instead of editing code logic
-COMPANY_SOURCES: List[Source] = [
-    # Greenhouse example
-    Source(
-        name="ExampleCo",
-        type="greenhouse",
-        config={"board_token": "exampleco"},
-    ),
-    # Lever example
-    Source(
-        name="AnotherCo",
-        type="lever",
-        config={"company": "anotherco"},
-    ),
-    # You can add more types later ("ashby", "workable", "custom_json", etc.)
-]
+def get_existing_job_keys(gc: gspread.Client) -> set[Tuple[str, str, str]]:
+    """
+    Return set of (company, job_id, source) already in jobs_raw
+    """
+    sh = gc.open(SHEET_NAME)
+    ws = sh.worksheet("jobs_raw")
+    values = ws.get_all_values()
+
+    keys = set()
+    for row in values[1:]:
+        row = row + [""] * (9 - len(row))
+        company = row[2].strip().lower()
+        job_id = row[4].strip()
+        source = row[7].strip().lower()
+        if company and job_id and source:
+            keys.add((company, job_id, source))
+    return keys
 
 
-# ---- Fetchers --------------------------------------------------------------
+def append_jobs(gc: gspread.Client, rows: List[List[str]]) -> None:
+    if not rows:
+        return
+    sh = gc.open(SHEET_NAME)
+    ws = sh.worksheet("jobs_raw")
+    ws.append_rows(rows, value_input_option="USER_ENTERED")
 
 
-def fetch_from_greenhouse(source: Source) -> Iterable[Job]:
-    board_token = source.config["board_token"]
-    url = f"https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs"
-    logger.info("Fetching Greenhouse jobs for %s (%s)", source.name, url)
+# -------------------------------------------------------------------
+# Fetchers
+# -------------------------------------------------------------------
 
+def fetch_greenhouse(board: str, company: str) -> Iterable[Job]:
+    url = f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs"
     resp = requests.get(url, timeout=15)
     resp.raise_for_status()
     data = resp.json()
@@ -99,114 +135,111 @@ def fetch_from_greenhouse(source: Source) -> Iterable[Job]:
         title = item.get("title", "")
         location = item.get("location", {}).get("name", "") or ""
         job_url = item.get("absolute_url", "")
+        job_id = str(item.get("id", ""))
 
         if not _matches_keywords(title):
             continue
 
-        job = Job(
+        yield Job(
             source="greenhouse",
-            company=source.name,
+            company=company,
             title=title,
             location=location,
             url=job_url,
             remote=_looks_remote(location),
             posted_at=item.get("updated_at"),
-            raw=item,
+            raw={"job_id": job_id},
         )
-        yield job
 
 
-def fetch_from_lever(source: Source) -> Iterable[Job]:
-    company = source.config["company"]
-    url = f"https://api.lever.co/v0/postings/{company}?mode=json"
-    logger.info("Fetching Lever jobs for %s (%s)", source.name, url)
-
+def fetch_lever(board: str, company: str) -> Iterable[Job]:
+    url = f"https://api.lever.co/v0/postings/{board}?mode=json"
     resp = requests.get(url, timeout=15)
     resp.raise_for_status()
     data = resp.json()
 
     for item in data:
         title = item.get("text", "")
-        location = ", ".join(item.get("categories", {}).get("location", "").split("/"))
+        location = item.get("categories", {}).get("location", "")
         job_url = item.get("hostedUrl") or item.get("applyUrl", "")
+        job_id = item.get("id", "")
 
         if not _matches_keywords(title):
             continue
 
-        job = Job(
+        yield Job(
             source="lever",
-            company=source.name,
+            company=company,
             title=title,
             location=location,
             url=job_url,
             remote=_looks_remote(location),
-            posted_at=item.get("createdAt"),
-            raw=item,
+            posted_at=str(item.get("createdAt")),
+            raw={"job_id": job_id},
         )
-        yield job
 
 
-def fetch_from_source(source: Source) -> Iterable[Job]:
-    try:
-        if source.type == "greenhouse":
-            yield from fetch_from_greenhouse(source)
-        elif source.type == "lever":
-            yield from fetch_from_lever(source)
-        else:
-            logger.warning("Unknown source type '%s' for %s", source.type, source.name)
-    except Exception as exc:
-        logger.exception("Failed to fetch jobs for %s: %s", source.name, exc)
-
-
-# ---- Aggregation / output --------------------------------------------------
-
-
-def dedupe_jobs(jobs: Iterable[Job]) -> List[Job]:
-    seen = set()
-    deduped: List[Job] = []
-    for job in jobs:
-        key = (job.company.lower(), job.title.lower(), job.url)
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(job)
-    return deduped
-
-
-def save_jobs_json(jobs: List[Job], path: str) -> None:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump([j.to_dict() for j in jobs], f, indent=2, ensure_ascii=False)
-    logger.info("Saved %d jobs to %s", len(jobs), path)
-
+# -------------------------------------------------------------------
+# Main ingestion
+# -------------------------------------------------------------------
 
 def main() -> None:
-    logger.info("Starting job fetch")
+    logger.info("Starting job ingestion")
 
-    all_jobs: List[Job] = []
-
-    for src in COMPANY_SOURCES:
-        jobs = list(fetch_from_source(src))
-        logger.info("Fetched %d jobs from %s", len(jobs), src.name)
-        all_jobs.extend(jobs)
-
-    filtered = [j for j in all_jobs if j.remote]  # remote only
-    deduped = dedupe_jobs(filtered)
-
-    logger.info(
-        "Total fetched: %d, after remote filter: %d, after dedupe: %d",
-        len(all_jobs),
-        len(filtered),
-        len(deduped),
-    )
+    gc = get_gspread_client()
+    ats_sources = get_ats_sources(gc)
+    existing_keys = get_existing_job_keys(gc)
 
     today = dt.date.today().isoformat()
-    output_path = os.path.join(
-        os.path.dirname(__file__),
-        "data",
-        f"jobs_{today}.json",
-    )
-    save_jobs_json(deduped, output_path)
+    new_rows: List[List[str]] = []
+
+    for src in ats_sources:
+        company = src["Company"]
+        industry = src.get("Industry", "")
+        ats = src["ATS"].lower()
+        board = src["Board"]
+
+        logger.info("Fetching %s jobs for %s", ats, company)
+
+        try:
+            if ats == "greenhouse":
+                jobs = fetch_greenhouse(board, company)
+            elif ats == "lever":
+                jobs = fetch_lever(board, company)
+            else:
+                logger.warning("Unsupported ATS %s for %s", ats, company)
+                continue
+
+            for job in jobs:
+                if not job.remote:
+                    continue
+
+                job_id = job.raw.get("job_id", "")
+                key = (company.lower(), job_id, job.source)
+
+                if key in existing_keys:
+                    continue
+
+                row = [
+                    today,            # Date
+                    industry,         # Industry
+                    company,          # Company
+                    job.title,        # Title
+                    job_id,           # JobID
+                    job.location,     # Location
+                    job.url,          # URL
+                    job.source,       # Source
+                    "",               # Applied?
+                ]
+                new_rows.append(row)
+                existing_keys.add(key)
+
+        except Exception as exc:
+            logger.exception("Failed fetching jobs for %s: %s", company, exc)
+
+    append_jobs(gc, new_rows)
+
+    logger.info("Job ingestion complete. Added %d new jobs.", len(new_rows))
 
 
 if __name__ == "__main__":
