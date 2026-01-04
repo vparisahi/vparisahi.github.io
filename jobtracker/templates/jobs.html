@@ -1,136 +1,103 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Daily Jobs Feed</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-  </head>
-  <body class="bg-light">
-    <nav class="navbar navbar-dark bg-dark mb-4">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('jobs') }}">Job Tracker</a>
-        <div class="d-flex">
-          <a href="{{ url_for('manual_job') }}" class="btn btn-sm btn-outline-light">
-            Add Manual Job
-          </a>
-        </div>
-      </div>
-    </nav>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Job Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      vertical-align: top;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    button, a.btn {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+    }
+    .refresh {
+      background-color: #2563eb;
+      color: white;
+    }
+    .manual {
+      background-color: #6b7280;
+      color: white;
+      margin-left: 10px;
+    }
+    .apply {
+      background-color: #16a34a;
+      color: white;
+    }
+    .top-actions {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
 
-    <div class="container mb-5">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>Daily Remote DevOps / SRE / Cloud / Infra Jobs</span>
-          <small class="text-muted">
-            {{ jobs|length }} jobs
-          </small>
-        </div>
-        <div class="card-body p-0">
-          {% if jobs %}
-            <div class="table-responsive">
-              <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light">
-                  <tr>
-                    <th>Date</th>
-                    <th>Industry</th>
-                    <th>Company</th>
-                    <th>Title</th>
-                    <th>Location</th>
-                    <th>Source</th>
-                    <th>Applied?</th>
-                    <th style="width: 280px;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for job in jobs %}
-                    <tr>
-                      <td>{{ job.date_found[:10] if job.date_found }}</td>
-                      <td>{{ job.industry }}</td>
-                      <td>{{ job.company }}</td>
-                      <td>
-                        {{ job.title }}<br />
-                        <small class="text-muted">
-                          {% if job.job_id %}ID: {{ job.job_id }} &bull; {% endif %}
-                          {{ job.location }}
-                        </small>
-                      </td>
-                      <td>{{ job.location }}</td>
-                      <td>{{ job.source }}</td>
-                      <td>
-                        {% if job.applied %}
-                          <span class="badge text-bg-success">{{ job.applied }}</span>
-                        {% else %}
-                          <span class="text-muted">No</span>
-                        {% endif %}
-                      </td>
-                      <td>
-                        {% if job.url %}
-                          <a
-                            href="{{ job.url }}"
-                            target="_blank"
-                            class="btn btn-sm btn-outline-primary me-2"
-                          >
-                            Open
-                          </a>
+<h2>Job Tracker</h2>
 
-                          <a
-                            href="{{ url_for(
-                              'tailor',
-                              job_url=job.url,
-                              title=job.title,
-                              company=job.company,
-                              source=job.source,
-                              job_id=job.job_id
-                            ) }}"
-                            class="btn btn-sm btn-outline-secondary me-2"
-                          >
-                            Tailor
-                          </a>
+<div class="top-actions">
+  <form method="POST" action="/refresh_jobs" style="display:inline;">
+    <button class="refresh" type="submit">🔄 Refresh Jobs</button>
+  </form>
 
-                          {% if not job.applied %}
-                            <form
-                              method="post"
-                              action="{{ url_for('mark_applied') }}"
-                              class="d-inline"
-                            >
-                              <input type="hidden" name="company" value="{{ job.company }}" />
-                              <input type="hidden" name="job_id" value="{{ job.job_id }}" />
-                              <input type="hidden" name="source" value="{{ job.source }}" />
-                              <button
-                                type="submit"
-                                class="btn btn-sm btn-success"
-                              >
-                                Mark Applied
-                              </button>
-                            </form>
-                          {% else %}
-                            <button
-                              type="button"
-                              class="btn btn-sm btn-outline-success"
-                              disabled
-                            >
-                              Applied
-                            </button>
-                          {% endif %}
-                        {% endif %}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <p class="p-3 mb-0">No jobs loaded yet. Use "Add Manual Job" or run the fetch script.</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
+  <a class="btn manual" href="/manual">➕ Add Job (Manual)</a>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
+<table>
+  <tr>
+    <th>Date</th>
+    <th>Industry</th>
+    <th>Company</th>
+    <th>Title</th>
+    <th>Location</th>
+    <th>Source</th>
+    <th>Applied?</th>
+    <th>Actions</th>
+  </tr>
+
+  {% for job in jobs %}
+  <tr>
+    <td>{{ job.date_found }}</td>
+    <td>{{ job.industry }}</td>
+    <td>{{ job.company }}</td>
+    <td>
+      <strong>{{ job.title }}</strong><br>
+      <small>{{ job.job_id }}</small>
+    </td>
+    <td>{{ job.location }}</td>
+    <td>{{ job.source }}</td>
+    <td>{{ job.applied or "No" }}</td>
+    <td>
+      <a href="{{ job.url }}" target="_blank">Open</a><br><br>
+
+      {% if not job.applied %}
+      <form method="POST" action="/mark_applied">
+        <input type="hidden" name="company" value="{{ job.company }}">
+        <input type="hidden" name="job_id" value="{{ job.job_id }}">
+        <input type="hidden" name="source" value="{{ job.source }}">
+        <button class="apply" type="submit">Mark Applied</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+</body>
 </html>
-
